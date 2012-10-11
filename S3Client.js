@@ -126,12 +126,21 @@ S3Auth.prototype.constructCanonicalizedResource = function(resource){
 	}
 	return canonializedResource;
 }
-
+/**
+ * Constructor for the S3Client
+ * @api public
+ * @param {opt} options object
+ */
 var S3Client = module.exports =exports = function S3Client(opt){
 	this.options = opt;
 	this.awsAuth=new S3Auth(opt).createAuth();
 }
-
+/**
+ * Creates a request to S3 
+ * @param cb callback
+ * @returns {___request1} the request object
+ * @api private
+ */
 S3Client.prototype.createRequest = function(cb){
 	var headers = this.options.headers;
 	if(this.options.contentType) headers['content-type'] = this.options.contentType;
@@ -154,6 +163,12 @@ S3Client.prototype.createRequest = function(cb){
 	return request;
 }
 
+/**
+ * Does a post to S3 with the provided file 
+ * @param {filetosend} the file to send to S3
+ * @param {cb} response callback
+ * @api public
+ */
 S3Client.prototype.put = function(filetosend, cb){
 	console.log("put : "+this.options.resource+' , '+filetosend);
 	var req = this.createRequest(cb);
@@ -161,6 +176,11 @@ S3Client.prototype.put = function(filetosend, cb){
 	readStream.pipe(req);
 }
 
+/**
+ * Does a get (delete, get) to S3 
+ * @param {cb} a callback to recieve the response
+ * @api public
+ */
 S3Client.prototype.get = function( cb){
 	console.log(this.options.verb +" : "+this.options.resource);
 	
