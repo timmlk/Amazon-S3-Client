@@ -67,9 +67,9 @@ Usage is fairly simple:
 
 ###AWS specific operations
 List content of bucket :
-   Do a get and set resource to empty string
+   Do a GET and set resource to empty string   
    If you want to limit a list, then provide the parameters as a normal query string (ie. ?max-keys=50&prefix=bob)
-   to the get resource option 
+   to the get resource option    
      var options = {
             'key' : keyId,
             'secret' : secret,
@@ -77,7 +77,7 @@ List content of bucket :
             'verb' : 'GET',
             'resource' : '?max-keys=50&prefix=bob',
     };
-To do specific subresource gets, append the supresource as normal to the resource for example ?acl
+To do specific subresource gets, append the supresource as normal to the resource for example ?acl   
      var options = {
             'key' : keyId,
             'secret' : secret,
