@@ -65,7 +65,27 @@ Usage is fairly simple:
         
     });
 
-
+###AWS specific operations
+List content of bucket :
+   Do a get and set resource to empty string
+   If you want to limit a list, then provide the parameters as a normal query string (ie. ?max-keys=50&prefix=bob)
+   to the get resource option 
+     var options = {
+            'key' : keyId,
+            'secret' : secret,
+            'bucket' : bucket,
+            'verb' : 'GET',
+            'resource' : '?max-keys=50&prefix=bob',
+    };
+To do specific subresource gets, append the supresource as normal to the resource for example ?acl
+     var options = {
+            'key' : keyId,
+            'secret' : secret,
+            'bucket' : bucket,
+            'verb' : 'GET',
+            'resource' : '?acl',
+    };
+    
 
 TODO
 ------
@@ -73,19 +93,19 @@ TODO
 
 NOTES
 Remeber to set bucket policy to public read 
-{
-  "Version":"2008-10-17",
-  "Statement":[{
-    "Sid":"AddPerm",
-        "Effect":"Allow",
-      "Principal": {
-            "AWS": "*"
-         },
-      "Action":["s3:GetObject"],
-      "Resource":["arn:aws:s3:::bucket/*"
+    {
+      "Version":"2008-10-17",
+      "Statement":[{
+        "Sid":"AddPerm",
+            "Effect":"Allow",
+          "Principal": {
+                "AWS": "*"
+             },
+          "Action":["s3:GetObject"],
+          "Resource":["arn:aws:s3:::bucket/*"
+          ]
+        }
       ]
     }
-  ]
-}
 
 Direct upload requires s3:putObjectACL for the user that signs the policy for the request   
