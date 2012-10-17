@@ -1,5 +1,6 @@
 var express = require('express'),http = require('http'), util = require('util'), crypto = require('crypto');
 var S3Client =  require('./S3Client');
+var knox = require('knox');
 var app = express();
 
 
@@ -37,11 +38,12 @@ app.post('/upload', function(req, res, next){
 			'contentType':file.type,
 			'contentLength' : file.size,
 			'md5' : '',
-			'res' : res,
 			'headers' : {'x-amz-date' : new Date().toUTCString()}
 	};
+	
 	var client = new S3Client(options);
 	client.put(file.path, function(err,resp){
+		if(resp){
 		console.log('RESP FROM S3');
 		if(resp.statusCode=== 200){
 			res.send('File : '+ file.name+" successfully sent to S3");
@@ -49,8 +51,12 @@ app.post('/upload', function(req, res, next){
 			res.send('<p>S3 returned status code : '+resp.statusCode+'</p>');
 		}
 		resp.on('data', function(chunk) {
+			
 			console.log('BODY: ' + chunk);
 		});
+		}else{
+			console.log ('ERR: '+err);
+		}
 		
 	});
 		
@@ -67,10 +73,11 @@ app.post('/s3', function(req,res){
 			'key' : keyId,
 			'secret' : secret,
 			'bucket' : bucket,
-			'verb' : 'GET',
+			//'verb' : 'GET',
 			'resource' : req.body['query'],
 			'headers' : {'x-amz-date' : new Date().toUTCString()}
 	};
+	var s3resp = '';
 	var client = new S3Client(options);
 	client.get(function(err,resp){
 		console.log('RESP FROM S3');
@@ -81,9 +88,12 @@ app.post('/s3', function(req,res){
 		}
 		resp.on('data', function(chunk) {
 			console.log('BODY: ' + chunk);
-			res.send(chunk);
+			//res.send(chunk);
+			s3resp+=chunk;
 		});
-		
+		resp.on('end', function(){
+			res.send(s3resp);
+		});
 	});
 });
 app.get('/s3delete', function(req,res){
@@ -97,12 +107,12 @@ app.post('/s3delete', function(req,res){
 			'key' : keyId,
 			'secret' : secret,
 			'bucket' : bucket,
-			'verb' : 'DELETE',
-			'resource' : req.body['file'],
+			//'verb' : 'DELETE',
+			//'resource' : req.body['file'],
 			'headers' : {'x-amz-date' : new Date().toUTCString()}
 	};
 	var client = new S3Client(options);
-	client.get(function(err,resp){
+	client.del(req.body['file'],function(err,resp){
 		console.log('RESP FROM S3');
 		if(resp.statusCode=== 200){
 			res.set('Content-Type', 'text/xml');
@@ -143,6 +153,77 @@ app.get('/direct_upload', function(req,res,next){
 	
 	
 });
+/***********************************************************************/
+//KNOX S3 integration
+var knoxClient = knox.createClient({
+    key: keyId
+  , secret: secret
+  , bucket: bucket
+});
+
+app.get('/knox', function(req,res,next){
+	var resp = ['<html><head></head><body>'];
+	resp.push('<a href="/knox/get">get/query</a>');
+	resp.push('<a href="/knox/upload">Upload</a>');
+	resp.push('<a href="/knox/delete">Upload</a>');
+	resp.push("</body></html>");
+	res.send(resp.join(''));
+	
+});
+
+app.get('/knox/delete', function(req,res){
+	res.send('<form method="post" id="form" class="form" >'
+			 +'<p>query: <input type="text" name="file" id="file" /></p>'
+			 +'<p><input type="submit" value="Delete"></p></form>');
+});
+app.get('/knox/get', function(req,res){
+	res.send('<form method="post" id="form" class="form">'
+			 +'<p>query: <input type="text" name="query" id="query" /></p>'
+			 +'<p><input type="submit" value="Submit"></p></form>');
+});
+app.get('/knox/upload', function(req, res){
+	  res.send('<form method="post" enctype="multipart/form-data" id="uploadform" class="fileform">'
+				 +'<p>File: <input type="file" name="file" id="fileinput" multiple="false"></p>'
+				 +'<p><input type="submit" value="Upload"></p></form>');
+});
+app.post('/knox/delete', function (req, res){
+	knoxClient.del(req.body['file']).on('response', function(s3res){
+		  console.log(s3res.statusCode);
+		  console.log(s3res.headers);
+		  res.send(s3res.statusCode);
+		}).end();
+});
+
+app.post('/knox/get', function(req,res){
+		var response = '';
+		knoxClient.get(req.body['query']).on('response', function(s3res){
+			console.log(s3res.statusCode);
+			console.log(s3res.headers);
+			s3res.setEncoding('utf8');
+			s3res.on('data', function(chunk){
+				console.log(chunk);
+				response+=chunk;
+			});
+			s3res.on('end', function(){
+				res.send(response);
+			});
+		}).end();
+});
+
+app.post('/knox/upload', function(req,res){
+	console.log(util.inspect(req.files));
+	var file = req.files.file;
+	knoxClient.putFile(file.path, file.name, function(err, s3res){
+			if(err){
+				console.log('ERROR:'+util.inspect(err));
+			}
+		  if (res && 200 == res.statusCode) {
+			  console.log(util.inspect(res));
+			   res.send('saved to %s', file.name);
+		  }
+	});
+});
+
 http.createServer(app).listen(
 	app.get('port'),
 	function() {

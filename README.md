@@ -5,7 +5,7 @@ Simple express site to demonstrate integration to S3.
 
 Description
 -------------
-This is a simple site that demonstrates integration to S3.
+This is a simple site that demonstrates integration to S3.  
 At this point all functionality for S3 is in the S3Client.js file.
 
 
@@ -79,7 +79,7 @@ List content of bucket :
             'resource' : '?max-keys=50&prefix=bob',
     };
     
-To do specific subresource gets, append the supresource as normal to the resource for example ?acl   
+To do specific subresource gets, append the subresource as normal to the resource for example ?acl   
     
      var options = {
             'key' : keyId,

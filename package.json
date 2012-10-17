@@ -1,16 +1,23 @@
 {
 	"name": "S3Client",
 	"version": "0.0.1",
-	  "author" : "Timm Kristensen <timmkristensen@gmail.com>",
+	"author" : "Timm Kristensen <timmkristensen@gmail.com>",
 	"private": true,
 	"scripts": {
-    "start": "node app"
-  },
+        "start": "node app"
+    },
+    "contributors": [ 
+            { "name": "timmkristensen", "email": "timmkristensen@gmail.com" } 
+        ],
 	"dependencies": {
-		"express"  : ">= 3.0.0rc3"
-		},
+		"express"  : ">= 3.0.0rc3",
+		"knox" : "0.3.1"
+	},
+	"keywords": [
+        "amazon",
+        "S3"
+    ],
   "engines": {
-    "node": "0.8.6",
-    "npm":  "1.1.x"
+    "node": ">0.8.0"
   }
 }
