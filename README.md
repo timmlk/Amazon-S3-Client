@@ -6,12 +6,14 @@ Simple express site to demonstrate integration to S3.
 Description
 -------------
 This is a simple site that demonstrates integration to S3.  
-At this point all functionality for S3 is in the S3Client.js file.
+All functionality for S3 is accessed through the S3Client.js file.
 
 
 Usage:
 ------
-Usage is fairly simple:
+Usage is fairly simple:  
+
+var S3Client = require('S3Client');  
 
 ###Options object:
     options = {
@@ -33,16 +35,10 @@ Usage is fairly simple:
             'key' : keyId,
             'secret' : secret,
             'bucket' : bucket,
-            'verb' : 'PUT',
-            'resource' : file.name,
-            'contentType':file.type,
-            'contentLength' : file.size, 
-            'md5' : '',
-            'res' : res,
-            'headers' : {'x-amz-date' : new Date().toUTCString()}
     };
     var client = new S3Client(options);
-    client.put(fileToPut, function(err,resp){
+    
+    client.put(filetosend,resourceToCreate, file.type, file.size, function(err,resp){
         // do something with response
     }
     
@@ -51,12 +47,10 @@ Usage is fairly simple:
             'key' : keyId,
             'secret' : secret,
             'bucket' : bucket,
-            'verb' : 'DELETE',
-            'resource' : fileToDelete,
-            'headers' : {'x-amz-date' : new Date().toUTCString()}
+            
     };
     var client = new S3Client(options);
-    client.get(function(err,resp){
+    client.del(resourceToDelete, function(err,resp){
         // do something here
     }
     
@@ -65,32 +59,31 @@ Usage is fairly simple:
     var options = {
             'key' : keyId,
             'secret' : secret,
-            'bucket' : bucket,
-            'verb' : 'GET',
-            'resource' : req.body['query'],
-            'headers' : {'x-amz-date' : new Date().toUTCString()}
+            'bucket' : bucket
     };
     var client = new S3Client(options);
-    client.get(function(err,resp){
+    client.get(resourceToGetOrQuery, function(err,resp){
         // do something with response 
         resp.on('data', function(chunk) { // maybe bind to on data to get actual content
         });
         
     });
+    
+    ResourceToGetOrQuery can be many different things:
+    '' (empty string) : lists content of bucket  
+    ?xxx : query subresouce xxx (ie. acl, cors,...), seperate with
+    xxx?yyy : query subresource xxx with specefied yyy option (ie. ?max-keys=50&prefix=20)
+    filename : get file 
 
 ###AWS specific operations
 List content of bucket :
    Do a GET and set resource to empty string   
    If you want to limit a list, then provide the parameters as a normal query string (ie. ?max-keys=50&prefix=bob)
    to the get resource option    
+       client.get('', function(err,resp){}); //list bucket content  
+       or  
+       client.get('?max-keys=50&prefix=bob', function(err,resp){}); // list bucket content but list only first 50 items starting with 'bob'  
    
-     var options = {
-            'key' : keyId,
-            'secret' : secret,
-            'bucket' : bucket,
-            'verb' : 'GET',
-            'resource' : '?max-keys=50&prefix=bob',
-    };
     
 To do specific subresource gets, append the subresource as normal to the resource for example ?acl   
     
@@ -98,15 +91,15 @@ To do specific subresource gets, append the subresource as normal to the resourc
             'key' : keyId,
             'secret' : secret,
             'bucket' : bucket,
-            'verb' : 'GET',
-            'resource' : '?acl',
     };
-    
+    client.get('?acl', function(err,resp){}); //get acl for bucket
+    client.get('filename?acl', function(err,resp){}); //get acl for file item
 
 TODO 
 -----------
 REFAC MD5 calculation  
 multipart upload to S3  
+test of S3Client  
 
 ##NOTES
 Remeber to set bucket policy to public read 
