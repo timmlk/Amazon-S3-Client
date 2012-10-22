@@ -105,10 +105,10 @@ To do specific subresource gets, append the subresource as normal to the resourc
 
 TODO 
 -----------
-Optional MD5 calculation  
+REFAC MD5 calculation  
 multipart upload to S3  
 
-NOTES
+##NOTES
 Remeber to set bucket policy to public read 
     {
       "Version":"2008-10-17",

@@ -9,13 +9,22 @@
     "contributors": [ 
             { "name": "timmkristensen", "email": "timmkristensen@gmail.com" } 
         ],
+    "repository":{
+        "type": "git",
+        "url": "https://github.com/timmlk/Amazon-S3-Client.git"
+        },
 	"dependencies": {
-		"express"  : ">= 3.0.0rc3",
+		"express"  : ">= 3.0.0rc3"
 	},
+	"devDependencies": {
+	   "moccha" : "*",
+        "should": "*"
+     },
 	"keywords": [
         "amazon",
         "S3"
     ],
+  
   "engines": {
     "node": ">0.8.0"
   }

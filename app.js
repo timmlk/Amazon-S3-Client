@@ -1,5 +1,5 @@
 var express = require('express'),http = require('http'), util = require('util'), crypto = require('crypto');
-var S3Client =  require('./S3Client');
+var S3Client =  require('./lib/S3Client');
 var app = express();
 
 
@@ -37,19 +37,7 @@ app.post('/upload', function(req, res, next){
 	var file = req.files.image;
 	console.log(util.inspect(file));
 
-	var options = {
-			'key' : keyId,
-			'secret' : secret,
-			'bucket' : bucket,
-			//'verb' : 'PUT',
-			//'resource' : file.name,
-			//'contentType':file.type,
-			//'contentLength' : file.size,
-			'createmd5' : 'true',
-			'headers' : {'x-amz-date' : new Date().toUTCString()}
-	};
-	
-//	var client = new S3Client(options);
+
 	client.put(file.path,'test/'+file.name, file.type, file.size, function(err,resp){
 		if(resp){
 		console.log('RESP FROM S3');
@@ -77,16 +65,7 @@ app.get('/s3', function(req,res){
 });
 
 app.post('/s3', function(req,res){
-	var options = {
-			'key' : keyId,
-			'secret' : secret,
-			'bucket' : bucket,
-			//'verb' : 'GET',
-			'resource' : req.body['query'],
-			'headers' : {'x-amz-date' : new Date().toUTCString()}
-	};
 	var s3resp = '';
-	//var client = new S3Client(options);
 	client.get(req.body['query'],function(err,resp){
 		console.log('RESP FROM S3');
 		if(resp){
@@ -115,15 +94,6 @@ app.get('/s3delete', function(req,res){
 });
 
 app.post('/s3delete', function(req,res){
-	var options = {
-			'key' : keyId,
-			'secret' : secret,
-			'bucket' : bucket,
-			//'verb' : 'DELETE',
-			//'resource' : req.body['file'],
-			'headers' : {'x-amz-date' : new Date().toUTCString()}
-	};
-	//var client = new S3Client(options);
 	client.del(req.body['file'],function(err,resp){
 		console.log('RESP FROM S3');
 		if(resp.statusCode=== 200){
