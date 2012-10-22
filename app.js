@@ -22,6 +22,15 @@ app.get('/upload', function(req, res){
 var secret = process.env.AWSSecretAccessKey;
 var keyId = process.env.AWSAccessKeyId;
 var bucket = process.env.AWSBucket;
+var options = {
+		'key' : keyId,
+		'secret' : secret,
+		'bucket' : bucket,
+		'createmd5' : 'true'
+};
+
+var client = new S3Client(options);
+
 app.post('/upload', function(req, res, next){
 	
 	console.log(util.inspect(req.files.image));
@@ -33,16 +42,16 @@ app.post('/upload', function(req, res, next){
 			'key' : keyId,
 			'secret' : secret,
 			'bucket' : bucket,
-			'verb' : 'PUT',
-			'resource' : file.name,
-			'contentType':file.type,
-			'contentLength' : file.size,
-			'md5' : '',
+			//'verb' : 'PUT',
+			//'resource' : file.name,
+			//'contentType':file.type,
+			//'contentLength' : file.size,
+			'createmd5' : 'true',
 			'headers' : {'x-amz-date' : new Date().toUTCString()}
 	};
 	
-	var client = new S3Client(options);
-	client.put(file.path, function(err,resp){
+//	var client = new S3Client(options);
+	client.put(file.path,'test/'+file.name, file.type, file.size, function(err,resp){
 		if(resp){
 		console.log('RESP FROM S3');
 		if(resp.statusCode=== 200){
@@ -78,22 +87,26 @@ app.post('/s3', function(req,res){
 			'headers' : {'x-amz-date' : new Date().toUTCString()}
 	};
 	var s3resp = '';
-	var client = new S3Client(options);
-	client.get(function(err,resp){
+	//var client = new S3Client(options);
+	client.get(req.body['query'],function(err,resp){
 		console.log('RESP FROM S3');
-		if(resp.statusCode=== 200){
-			res.set('Content-Type', 'text/xml');
+		if(resp){
+			if(resp.statusCode=== 200){
+				res.set('Content-Type', 'text/xml');
+			}else{
+				res.send('<p>S3 returned status code : '+resp.statusCode+'</p>');
+			}
+			resp.on('data', function(chunk) {
+				console.log('BODY: ' + chunk);
+				//res.send(chunk);
+				s3resp+=chunk;
+			});
+			resp.on('end', function(){
+				res.send(s3resp);
+			});
 		}else{
-			res.send('<p>S3 returned status code : '+resp.statusCode+'</p>');
+			console.log(err);
 		}
-		resp.on('data', function(chunk) {
-			console.log('BODY: ' + chunk);
-			//res.send(chunk);
-			s3resp+=chunk;
-		});
-		resp.on('end', function(){
-			res.send(s3resp);
-		});
 	});
 });
 app.get('/s3delete', function(req,res){
@@ -111,7 +124,7 @@ app.post('/s3delete', function(req,res){
 			//'resource' : req.body['file'],
 			'headers' : {'x-amz-date' : new Date().toUTCString()}
 	};
-	var client = new S3Client(options);
+	//var client = new S3Client(options);
 	client.del(req.body['file'],function(err,resp){
 		console.log('RESP FROM S3');
 		if(resp.statusCode=== 200){

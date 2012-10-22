@@ -13,7 +13,20 @@ Usage:
 ------
 Usage is fairly simple:
 
-
+###Options object:
+    options = {
+        'key' : aws S3 key,
+            'secret' : secret,
+            'bucket' : bucket,
+            'verb' : PUT, GET, DELETE,
+            'resource' : resource on S3 to create, delet or query OPTIONAL,
+            'contentType':file type for upload OPTIONAL,
+            'contentLength' : filesize OPTIONAL, 
+            'md5' : file MD5, if this is set then a a md5 wont be calculated OPTIONAL,
+            'calcmd5' : set if you want the program to calculate a md5 hash for PUT
+            'date' : request time OPTIONAL the system will insert an x-amz-date 
+            'headers' : {'x-amz-date' : new Date().toUTCString(),? } OPTIONAL
+    };
 
 ###Upload:
     var options = {
@@ -90,9 +103,10 @@ To do specific subresource gets, append the subresource as normal to the resourc
     };
     
 
-TODO
-------
-
+TODO 
+-----------
+Optional MD5 calculation  
+multipart upload to S3  
 
 NOTES
 Remeber to set bucket policy to public read 

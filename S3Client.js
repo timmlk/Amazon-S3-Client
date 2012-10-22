@@ -54,6 +54,7 @@ S3Auth.prototype.sign = function(options){
 	var canonicalizedResource = this.constructCanonicalizedResource(options.resource);
 	stringToSign += canonicalizedAmzHeaders+'\n'; // +CanonicalizedAmzHeaders
 	stringToSign += canonicalizedResource; // + CanonicalizedResource
+	console.log("STRING TO SIGN:"+stringToSign);
 	return this.hmacSha1(stringToSign, options);
 };
 /**
@@ -108,7 +109,7 @@ S3Auth.prototype.constructCanonicalizedAmzHeaders = function(amzHeaders){
  */
 S3Auth.prototype.constructCanonicalizedResource = function(resource){
 	var awsurl = url.parse(resource);
-	var subresources = [], canonializedResource = '/'+this.options.bucket+'/'+(awsurl.pathname || '');
+	var subresources = [], canonializedResource = this.createPath(this.options.bucket,awsurl.pathname || '');
 	if(awsurl.query){
 		awsurl.query.split('&').forEach(function(param){
 			var keyval = param.split('=');
@@ -126,6 +127,17 @@ S3Auth.prototype.constructCanonicalizedResource = function(resource){
 	}
 	return canonializedResource;
 };
+
+S3Auth.prototype.createPath = function(bucket, pathname){
+	var path ='';
+	if(bucket.indexOf('/') !==0){
+		path = '/'+bucket;
+	}
+	if(bucket.indexOf('/', bucket.length-1) === -1){
+		path+='/';
+	}
+	return path+pathname;
+}; 
 /**
  * Constructor for the S3Client
  * @api public
@@ -133,25 +145,31 @@ S3Auth.prototype.constructCanonicalizedResource = function(resource){
  */
 var S3Client = module.exports =exports = function S3Client(opt){
 	this.options = opt;
-	//this.awsAuth=new S3Auth(opt).createAuth();
+};
+
+S3Client.prototype.createHostname = function(bucket, awshost){
+	if(bucket.indexOf('.',bucket.length-1)!==-1) return bucket+awshost;
+	return bucket+'.'+awshost;
 };
 /**
  * Creates a request to S3 
  * @param cb callback
- * @returns {___request1} the request object
+ * @returns the request object
  * @api private
  */
-S3Client.prototype.createRequest = function(cb){
+S3Client.prototype.createRequest = function(options, cb){
 	
-	this.awsAuth=new S3Auth(this.options).createAuth();
-	var headers = this.options.headers;
-	if(this.options.contentType) headers['content-type'] = this.options.contentType;
-	if(this.options.contentLength) headers['content-length'] =  this.options.contentLength;
+	this.awsAuth=new S3Auth(options).createAuth();
+	var headers = options.headers;
+	if(options.contentType) headers['content-type'] = options.contentType;
+	if(options.contentLength) headers['content-length'] =  options.contentLength;
+	if(options.md5) headers['content-MD5'] = options.md5;
 	headers['Authorization'] = this.awsAuth;
+
 	var request = http.request({
-		'hostname' : this.options.bucket+'.'+s3_hostname,
-		'method' : this.options.verb,
-		'path' : '/'+this.options.resource,
+		'hostname' : this.createHostname(options.bucket,s3_hostname),
+		'method' : options.verb,
+		'path' : '/'+options.resource,
 		'headers' : headers
 	});
 	console.log(util.inspect(request));
@@ -163,20 +181,55 @@ S3Client.prototype.createRequest = function(cb){
 	request.on('error', function(err) {
 		if(cb) cb(err);
 	});
+	
 	return request;
 };
 
+/**
+ * Copy merge into to
+ * @param to the opject to clone merge into
+ * @param merge the object to add to 'to'
+ * @returns to extended with merge
+ */
+S3Client.prototype.cloneOptions = function (to, merge){
+		  var keys = Object.keys(merge);
+		  for(i in keys){
+			  var k = keys[i];
+			  to[k]= merge[k];
+		  }
+		  return to;
+};
 /**
  * Does a post to S3 with the provided file 
  * @param {filetosend} the file to send to S3
  * @param {cb} response callback
  * @api public
  */
-S3Client.prototype.put = function(filetosend, cb){
-	console.log("put : "+this.options.resource+' , '+filetosend);
-	var req = this.createRequest(cb);
-	var readStream = fs.createReadStream(filetosend);
-	readStream.pipe(req);
+S3Client.prototype.put = function(filetosend,resourceToCreate, mime, fileSize, cb){
+	console.log("put : "+resourceToCreate+' , '+filetosend);
+	var localoptions = this.cloneOptions({verb : 'PUT', resource : resourceToCreate, contentType:mime, contentLength:fileSize}, this.options);
+	
+
+	var me = this;
+	//TODO sucks refac
+	if(localoptions.createmd5){
+		var shasum = crypto.createHash('md5');
+		var s = fs.ReadStream(filetosend);
+		s.on('data', function(d) { shasum.update(d); });
+		s.on('end', function() {
+			localoptions.md5 = shasum.digest('base64');
+		});
+		s.on('close', function(){
+				var req = me.createRequest(localoptions, cb);
+			var readStream = fs.createReadStream(filetosend);
+			readStream.pipe(req);
+		});
+	}else{
+		var req = this.createRequest(localoptions, cb);
+		var readStream = fs.createReadStream(filetosend);
+		readStream.pipe(req);
+	}
+
 };
 
 /**
@@ -184,11 +237,11 @@ S3Client.prototype.put = function(filetosend, cb){
  * @param {cb} a callback to recieve the response
  * @api public
  */
-S3Client.prototype.get = function( cb){
-	this.options.verb = 'GET';
-	console.log(this.options.verb +" : "+this.options.resource);
+S3Client.prototype.get = function(resource, cb){
+	var localoptions = this.cloneOptions({verb: 'GET', resource: resource}, this.options);
+	console.log("GET : "+resource);
 	
-	this.createRequest(cb).end();
+	this.createRequest(localoptions, cb).end();
 };
 
 /**
@@ -198,10 +251,8 @@ S3Client.prototype.get = function( cb){
  * @api public
  */
 S3Client.prototype.del = function(fileToDelete, cb){
-	this.options.verb = 'DELETE';
-	this.options.resource = fileToDelete;
-	
-	this.createRequest(cb).end();
+	var localoptions = this.cloneOptions({verb: 'DELETE', resource: fileToDelete}, this.options);
+	this.createRequest(localoptions, cb).end();
 	
 };
 /**
@@ -212,8 +263,7 @@ S3Client.prototype.del = function(fileToDelete, cb){
  * @api public
  */
 S3Client.prototype.stream = function(fileToStreamTo, readStream, cb){
-	this.options.verb = 'PUT';
-	this.options.resource = fileToStreamTo;
-	var s3stream = this.createRequest();
+	var localoptions = this.cloneOptions({verb : 'PUT', resource : fileToStreamTo}, this.options);
+	var s3stream = this.createRequest(localoptions,cb);
 	readStream.pipe(s3stream);
 };
