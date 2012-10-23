@@ -41,6 +41,29 @@ var S3Client = require('S3Client');
     client.put(filetosend,resourceToCreate, file.type, file.size, function(err,resp){
         // do something with response
     }
+
+###Put text :
+Upload of text to S3, as a file or as subresource(?acl)   
+    var options = {
+            'key' : keyId,
+            'secret' : secret,
+            'bucket' : bucket,
+    };
+    var client = new S3Client(options);
+    
+    client.putText(text,resource,  function(err,resp){
+        // do something with response
+    }
+
+For example adding acl subresource to esiting item:  
+    client.putText(aclxml,'cutedog.jpg?acl',  function(err,resp){
+        // do something with response
+    }
+    
+Or just putting text to a file  
+    client.putText(text,'chrismaswishlist.txt',  function(err,resp){
+        // do something with response
+    }
     
 ###Delete:
     var options = {
@@ -100,6 +123,7 @@ TODO
 REFAC MD5 calculation  
 multipart upload to S3  
 test of S3Client  
+Put bucket ? how?  
 
 ##NOTES
 Remeber to set bucket policy to public read 

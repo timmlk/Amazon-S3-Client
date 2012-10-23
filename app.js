@@ -39,9 +39,6 @@ var client = new S3Client(options);
 
 
 app.post('/uploadtext', function(req, res, next){
-	
-	
-
 	client.putText(req.body['text'],'test/'+req.body['resource'],  function(err,resp){
 		if(resp){
 		console.log('RESP FROM S3');
@@ -66,9 +63,6 @@ app.post('/upload', function(req, res, next){
 	console.log(util.inspect(req.files.image));
 
 	var file = req.files.image;
-	//console.log(util.inspect(file));
-
-
 	client.put(file.path,'test/'+file.name, file.type, file.size, function(err,resp){
 		if(resp){
 		console.log('RESP FROM S3');
