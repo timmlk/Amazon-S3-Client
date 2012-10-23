@@ -43,7 +43,8 @@ var S3Client = require('S3Client');
     }
 
 ###Put text :
-Upload of text to S3, as a file or as subresource(?acl)   
+Upload of text to S3, as a file or as subresource(?acl)  
+     
     var options = {
             'key' : keyId,
             'secret' : secret,
@@ -56,11 +57,13 @@ Upload of text to S3, as a file or as subresource(?acl)
     }
 
 For example adding acl subresource to esiting item:  
+    
     client.putText(aclxml,'cutedog.jpg?acl',  function(err,resp){
         // do something with response
     }
     
 Or just putting text to a file  
+    
     client.putText(text,'chrismaswishlist.txt',  function(err,resp){
         // do something with response
     }
