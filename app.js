@@ -15,7 +15,14 @@ app.get('/', function(req, res){
 
 app.get('/upload', function(req, res){
 	  res.send('<form method="post" enctype="multipart/form-data" id="uploadform" class="fileform">'
-				 +'<p>File: <input type="file" name="image" id="fileinput" multiple="true"></p>'
+				 +'<p>File: <input type="file" name="image" id="fileinput" ></p>'
+				 +'<p>Resource: <input type="text" name="resource" id="resource" ></p>'
+				 +'<p><input type="submit" value="Upload"></p></form>');
+	});
+app.get('/uploadText', function(req, res){
+	  res.send('<form method="post" id="uploadform" class="fileform">'
+				 +'<p>Resource: <input type="text" name="resource" id="resource" ></p>'
+				 +'<p>text for upload: <input type="text" name="text" id="text" ></p>'
 				 +'<p><input type="submit" value="Upload"></p></form>');
 	});
 var secret = process.env.AWSSecretAccessKey;
@@ -30,12 +37,36 @@ var options = {
 
 var client = new S3Client(options);
 
+
+app.post('/uploadtext', function(req, res, next){
+	
+	
+
+	client.putText(req.body['text'],'test/'+req.body['resource'],  function(err,resp){
+		if(resp){
+		console.log('RESP FROM S3');
+		if(resp.statusCode=== 200){
+			res.send('reource : '+ req.body['resource']+" successfully created on S3");
+		}else{
+			res.send('<p>S3 returned status code : '+resp.statusCode+'</p>');
+		}
+		resp.on('data', function(chunk) {
+			
+			console.log('BODY: ' + chunk);
+		});
+		}else{
+			console.log ('ERR: '+err);
+		}
+		
+	});
+		
+});
 app.post('/upload', function(req, res, next){
 	
 	console.log(util.inspect(req.files.image));
 
 	var file = req.files.image;
-	console.log(util.inspect(file));
+	//console.log(util.inspect(file));
 
 
 	client.put(file.path,'test/'+file.name, file.type, file.size, function(err,resp){
@@ -57,7 +88,6 @@ app.post('/upload', function(req, res, next){
 	});
 		
 });
-
 app.get('/s3', function(req,res){
 	res.send('<form method="post" id="form" class="form">'
 			 +'<p>query: <input type="text" name="query" id="query" /></p>'
