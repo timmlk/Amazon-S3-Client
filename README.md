@@ -1,16 +1,23 @@
 S3Client
 ============
 
-Simple express site to demonstrate integration to S3.
+Simple client for integration to Amazon S3.
+
 
 Description
 -------------
-This is a simple site that demonstrates integration to S3.  
-All functionality for S3 is accessed through the S3Client.js file.
+This is a simple module for integration to amazon S3.  
+It supports manu of AWS S3 rest commands (see usage).  
+
+If you use this together with a framework like express for storing user uploads, then please be aware that express (formidable) will accept the user upload and save this locally, wehere upon you can pass this on to S3Client for upload to S3. 
+This might or might not be a problem dependent on your provider and the sizes of the files user upload to your site.   
+I might add a feature later on for plugging in to express/formidable to do direct pass through streaming(no local copy).
+
 
 
 Usage:
 ------
+
 Usage is fairly simple:  
 
 var S3Client = require('S3Client');  
@@ -18,17 +25,15 @@ var S3Client = require('S3Client');
 ###Options object:
     options = {
         'key' : aws S3 key,
-            'secret' : secret,
-            'bucket' : bucket,
-            'verb' : PUT, GET, DELETE,
-            'resource' : resource on S3 to create, delet or query OPTIONAL,
-            'contentType':file type for upload OPTIONAL,
-            'contentLength' : filesize OPTIONAL, 
-            'md5' : file MD5, if this is set then a a md5 wont be calculated OPTIONAL,
-            'calcmd5' : set if you want the program to calculate a md5 hash for PUT
-            'date' : request time OPTIONAL the system will insert an x-amz-date 
-            'headers' : {'x-amz-date' : new Date().toUTCString(),? } OPTIONAL
+        'secret' : secret,
+        'bucket' : bucket,
+        'md5' : file MD5, if this is set then a a md5 wont be calculated OPTIONAL,
+        'calcmd5' : set if you want the program to calculate a md5 hash for PUT
+        'date' : request time OPTIONAL the system will insert an x-amz-date 
+        'headers' : {'x-amz-date' : new Date().toUTCString(),? } OPTIONAL
     };
+
+The only options that are required are your credentials for Amazon S3 and the bucket name.  
 
 ###Upload:
     var options = {
@@ -120,6 +125,13 @@ To do specific subresource gets, append the subresource as normal to the resourc
     };
     client.get('?acl', function(err,resp){}); //get acl for bucket
     client.get('filename?acl', function(err,resp){}); //get acl for file item
+
+For a list of operations, options and supresources that are usable in S3, see the S3 rest documentation : http://docs.amazonwebservices.com/AmazonS3/latest/API/APIRest.html   
+
+Test
+---------
+There is some test in /test  
+This is not nearly enough and will be expanded, when I have the time. 
 
 TODO 
 -----------

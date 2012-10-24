@@ -1,5 +1,5 @@
 var express = require('express'),http = require('http'), util = require('util'), crypto = require('crypto');
-var S3Client =  require('./lib/S3Client');
+var S3Client =  require('../lib/S3Client');
 var app = express();
 
 
@@ -25,9 +25,9 @@ app.get('/uploadText', function(req, res){
 				 +'<p>text for upload: <input type="text" name="text" id="text" ></p>'
 				 +'<p><input type="submit" value="Upload"></p></form>');
 	});
-var secret = process.env.AWSSecretAccessKey;
-var keyId = process.env.AWSAccessKeyId;
-var bucket = process.env.AWSBucket;
+var secret = process.env.AWSSecretAccessKey || 'JKQ6vRzFig5fUlNN5526dL+2xjIICuS0DFMqsH72';
+var keyId = process.env.AWSAccessKeyId || 'AKIAI2MIIHROTQNZJRNA';
+var bucket = process.env.AWSBucket || 'patsia';
 var options = {
 		'key' : keyId,
 		'secret' : secret,

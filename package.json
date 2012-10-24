@@ -1,11 +1,9 @@
 {
 	"name": "S3Client",
-	"version": "0.0.1",
+	 "description": "Amazon S3 client",
+	"version": "0.1.0",
 	"author" : "Timm Kristensen <timmkristensen@gmail.com>",
 	"private": true,
-	"scripts": {
-        "start": "node app"
-    },
     "contributors": [ 
             { "name": "timmkristensen", "email": "timmkristensen@gmail.com" } 
         ],
@@ -14,18 +12,20 @@
         "url": "https://github.com/timmlk/Amazon-S3-Client.git"
         },
 	"dependencies": {
-		"express"  : ">= 3.0.0rc3"
+		
 	},
 	"devDependencies": {
+	   "express"  : ">= 3.0.0rc3",
 	   "moccha" : "*",
         "should": "*"
      },
 	"keywords": [
         "amazon",
-        "S3"
+        "S3",
+        "upload"
     ],
-  
+  "main": "index",
   "engines": {
-    "node": ">0.8.0"
+    "node": ">=0.2.0"
   }
 }
