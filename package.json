@@ -3,7 +3,7 @@
 	 "description": "Amazon S3 client",
 	"version": "0.1.0",
 	"author" : "Timm Kristensen <timmkristensen@gmail.com>",
-	"private": true,
+	"private": false,
     "contributors": [ 
             { "name": "timmkristensen", "email": "timmkristensen@gmail.com" } 
         ],
