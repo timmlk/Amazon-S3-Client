@@ -1,5 +1,5 @@
 {
-	"name": "S3Client",
+	"name": "s3client",
 	 "description": "Amazon S3 client",
 	"version": "0.1.0",
 	"author" : "Timm Kristensen <timmkristensen@gmail.com>",
