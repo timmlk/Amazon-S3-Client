@@ -7,7 +7,7 @@ Simple client for integration to Amazon S3.
 Description
 -------------
 This is a simple module for integration to amazon S3.  
-It supports manu of AWS S3 rest commands (see usage).  
+It supports many of AWS S3 rest commands (see usage).  
 
 If you use this together with a framework like express for storing user uploads, then please be aware that express (formidable) will accept the user upload and save this locally, wehere upon you can pass this on to S3Client for upload to S3. 
 This might or might not be a problem dependent on your provider and the sizes of the files user upload to your site.   
@@ -36,6 +36,8 @@ var S3Client = require('S3Client');
 The only options that are required are your credentials for Amazon S3 and the bucket name.  
 
 ###Upload:
+To upload a file simply pass the file to be uploaded and the name to store it under to the client  
+
     var options = {
             'key' : keyId,
             'secret' : secret,
@@ -48,7 +50,8 @@ The only options that are required are your credentials for Amazon S3 and the bu
     }
 
 ###Put text :
-Upload of text to S3, as a file or as subresource(?acl)  
+Upload of text to S3, as a file or as subresource(?acl) is done easily by passing the text (f.eks. json or xml or whatever) to putText.
+The content will be put in the item defined in the resource parameter.  
      
     var options = {
             'key' : keyId,
@@ -74,6 +77,9 @@ Or just putting text to a file
     }
     
 ###Delete:
+Deletion of a resource is done with client.del.
+To delete the current bucket just pass an empty string.
+
     var options = {
             'key' : keyId,
             'secret' : secret,
@@ -100,7 +106,7 @@ Or just putting text to a file
         
     });
     
-    ResourceToGetOrQuery can be many different things:
+    ResourceToGetOrQuery can be many different things:  
     '' (empty string) : lists content of bucket  
     ?xxx : query subresouce xxx (ie. acl, cors,...), seperate with
     xxx?yyy : query subresource xxx with specefied yyy option (ie. ?max-keys=50&prefix=20)
